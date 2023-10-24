@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary">
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="339dp"
+        android:layout_height="354dp"
+        android:layout_marginTop="552dp"
+        android:layout_marginEnd="184dp"
+        android:background="@drawable/oval"
+        android:translationZ="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.262"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+    android:layout_width="wrap_content"
+    android:layout_height="319dp"
+    android:layout_marginTop="-140dp"
+    android:background="@drawable/oval"
+    android:translationZ="1dp"
+    app:layout_constraintLeft_toRightOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/avenir_black"
+        android:text="GRAB \n &amp; \nSNAP"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.299" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_camera"
+        android:layout_width="284dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/btn_secondary"
+        android:fontFamily="@font/avenir_black"
+        android:text="Say Cheese! &#128522;"
+        android:textColor="@color/primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_about"
+        android:layout_width="284dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/btn_secondary"
+        android:fontFamily="@font/avenir_black"
+        android:text="About"
+        android:textColor="@color/primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_camera" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_sign_out"
+        android:layout_width="284dp"
+        android:layout_height="39dp"
+        android:layout_marginBottom="192dp"
+        android:background="@drawable/btn_logout"
+        android:fontFamily="@font/avenir_black"
+        android:text="Log Out"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_about"
+        app:layout_constraintVertical_bias="0.682" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
