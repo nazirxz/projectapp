@@ -1,39 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/primary"
     tools:context=".DisplayImageActivity">
 
     <ImageView
         android:id="@+id/displayImageView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true" />
+        android:layout_height="623dp"
+        android:layout_marginBottom="152dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/saveImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="61dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="18dp"
-        android:text="Simpan Gambar" />
+        android:id="@+id/myButton"
+        android:layout_width="60dp"
+        android:layout_height="49dp"
+        android:background="@drawable/ic_printer"
+        app:layout_constraintBottom_toTopOf="@+id/displayImageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.954"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.727" />
 
     <Button
+        android:id="@+id/backIcon"
+        android:layout_width="60dp"
+        android:layout_height="49dp"
+        android:background="@drawable/ic_chevron_left"
+        app:layout_constraintBottom_toTopOf="@+id/displayImageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.727" />
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="45dp"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/displayImageView"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="47dp"
-        android:layout_marginBottom="21dp"
+        android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/saveImageButton"
-        android:text="Kembali" />
-</RelativeLayout>
+        android:background="@drawable/btn_secondary"
+        android:fontFamily="@font/avenir_black"
+        android:text="Kembali"
+        android:textColor="@color/primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toEndOf="@+id/saveImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/displayImageView" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/saveImageButton"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="44dp"
+        android:background="@drawable/btn_secondary"
+        android:fontFamily="@font/avenir_black"
+        android:text="Simpan Gambar"
+        android:textColor="@color/primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/displayImageView"
+        app:layout_constraintVertical_bias="0.196" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

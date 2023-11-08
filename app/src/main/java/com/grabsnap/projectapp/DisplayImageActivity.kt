@@ -1,6 +1,5 @@
 package com.grabsnap.projectapp
 
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -14,8 +13,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import android.Manifest
+import android.content.Context
 import android.widget.Toast
-
+import java.text.SimpleDateFormat
+import java.util.*
 class DisplayImageActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityImageBinding
@@ -31,10 +32,14 @@ class DisplayImageActivity : AppCompatActivity() {
 
         binding.saveImageButton.setOnClickListener {
             if (photo != null) {
-                saveImage(photo)
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    saveImageToExternalStorage(photo)
+                } else {
+                    // Meminta izin WRITE_EXTERNAL_STORAGE
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), WRITE_EXTERNAL_STORAGE_REQUEST_CODE)
+                }
             }
         }
-
 
         binding.backButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
@@ -43,16 +48,38 @@ class DisplayImageActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveImage(image: Bitmap) {
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val imageFile = File(storageDir, "true_color_image.jpg")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Izin diberikan, simpan gambar
+                val photo: Bitmap? = intent.getParcelableExtra("photo")
+                if (photo != null) {
+                    saveImageToExternalStorage(photo)
+                }
+            } else {
+                // Izin ditolak, tampilkan pesan kepada pengguna
+                showToast("Izin penyimpanan ditolak")
+            }
+        }
+    }
+
+    private fun saveImageToExternalStorage(image: Bitmap) {
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val timeStamp = System.currentTimeMillis()
+        val fileName = "IMG_$timeStamp.png" // Menggunakan format PNG untuk gambar berkualitas tinggi
 
         try {
+            if (!storageDir.exists()) {
+                storageDir.mkdirs()
+            }
+
+            val imageFile = File(storageDir, fileName)
             val imageOutputStream = FileOutputStream(imageFile)
-            image.compress(Bitmap.CompressFormat.JPEG, 100, imageOutputStream)
+            image.compress(Bitmap.CompressFormat.PNG, 100, imageOutputStream) // Menggunakan format PNG
             imageOutputStream.close()
             // Gambar berhasil disimpan
-            showToast("Gambar berhasil disimpan!")
+            showToast("Gambar berhasil disimpan di penyimpanan eksternal sebagai $fileName")
         } catch (e: IOException) {
             e.printStackTrace()
             // Terjadi kesalahan saat menyimpan gambar
