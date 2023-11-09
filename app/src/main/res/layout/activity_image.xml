@@ -9,19 +9,18 @@
 
     <ImageView
         android:id="@+id/displayImageView"
-        android:layout_width="match_parent"
-        android:layout_height="623dp"
-        android:layout_marginBottom="152dp"
+        android:layout_width="409dp"
+        android:layout_height="590dp"
+        android:layout_marginBottom="144dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/myButton"
+    <ImageView
+        android:id="@+id/printButton"
         android:layout_width="60dp"
         android:layout_height="49dp"
-        android:background="@drawable/ic_printer"
+        android:src="@drawable/ic_printer"
         app:layout_constraintBottom_toTopOf="@+id/displayImageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.954"
@@ -29,7 +28,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.727" />
 
-    <Button
+    <ImageView
         android:id="@+id/backIcon"
         android:layout_width="60dp"
         android:layout_height="49dp"
@@ -48,14 +47,14 @@
         android:layout_below="@+id/displayImageView"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:layout_toEndOf="@+id/saveImageButton"
         android:background="@drawable/btn_secondary"
         android:fontFamily="@font/avenir_black"
         android:text="Kembali"
         android:textColor="@color/primary"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintHorizontal_bias="0.507"
         app:layout_constraintStart_toEndOf="@+id/saveImageButton"
         app:layout_constraintTop_toBottomOf="@+id/displayImageView" />
 

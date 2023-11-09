@@ -30,6 +30,14 @@ class DisplayImageActivity : AppCompatActivity() {
         val photo: Bitmap? = intent.getParcelableExtra("photo")
         binding.displayImageView.setImageBitmap(photo)
 
+        binding.printButton.setOnClickListener {
+
+        }
+        binding.backIcon.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
         binding.saveImageButton.setOnClickListener {
             if (photo != null) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {

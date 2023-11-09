@@ -32,6 +32,13 @@ class MainActivity : AppCompatActivity() {
                 requestCameraPermission()
             }
         }
+        binding.btnAbout.setOnClickListener {
+            val intent = Intent(this, AboutActivity::class.java)
+            startActivity(intent)
+        }
+        binding.btnSignOut.setOnClickListener {
+            finish()
+        }
     }
 
     private fun hasCameraPermission(): Boolean {
