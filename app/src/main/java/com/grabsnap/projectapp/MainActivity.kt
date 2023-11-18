@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnAbout.setOnClickListener {
             val intent = Intent(this, AboutActivity::class.java)
             startActivity(intent)
+            finish()
         }
         binding.btnSignOut.setOnClickListener {
             finish()
