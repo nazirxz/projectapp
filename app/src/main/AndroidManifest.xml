@@ -30,7 +30,7 @@
         <activity android:name=".DisplayImageActivity" android:exported="false"/>
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.provider"
+            android:authorities="com.grabsnap.projectapp.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true"
             >
@@ -38,6 +38,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths"/>
         </provider>
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
     </application>
 
 </manifest>

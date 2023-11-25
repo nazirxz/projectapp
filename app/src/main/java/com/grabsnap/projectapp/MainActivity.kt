@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -95,13 +96,18 @@ class MainActivity : AppCompatActivity() {
         for (x in 0 until width) {
             for (y in 0 until height) {
                 val pixelColor = negativeImage.getPixel(x, y)
-                val red = 255 - android.graphics.Color.red(pixelColor)
-                val green = 255 - android.graphics.Color.green(pixelColor)
-                val blue = 255 - android.graphics.Color.blue(pixelColor)
+                val red = 250 - android.graphics.Color.red(pixelColor) - 25
+                val green = 250 - android.graphics.Color.green(pixelColor) - 50
+                val blue = 250 - android.graphics.Color.blue(pixelColor) - 50
+
+                // Tambahkan pencetakan nilai-nilai warna
+                Log.d("Warna", "Red: $red, Green: $green, Blue: $blue")
+
                 trueColorImage.setPixel(x, y, android.graphics.Color.rgb(red, green, blue))
             }
         }
 
         return trueColorImage
     }
+
 }
