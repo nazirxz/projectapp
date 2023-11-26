@@ -2,7 +2,6 @@ package com.grabsnap.projectapp
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
@@ -13,7 +12,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
@@ -26,6 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.itextpdf.text.Document
 import com.itextpdf.text.Image
+import com.itextpdf.text.PageSize
 import com.itextpdf.text.pdf.PdfWriter
 import com.yalantis.ucrop.UCrop
 import java.io.*
@@ -46,10 +46,14 @@ class DisplayImageActivity : AppCompatActivity() {
         binding = ActivityImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         binding.printButton.setOnClickListener {
-            if (photoBitmap != null) {
-                createPdfAndPrint(photoBitmap)
+            if (::photoBitmap.isInitialized) {
+                val trueColorBitmap = convertToTrueColor(photoBitmap)
+                if (trueColorBitmap != null) {
+                    createPdfAndPrint(trueColorBitmap)
+                }
+            } else {
+                showToast("No photo available to print")
             }
         }
 
@@ -87,6 +91,112 @@ class DisplayImageActivity : AppCompatActivity() {
             finish()
         }
     }
+
+    private fun createPdfAndPrint(image: Bitmap) {
+        val trueColorBitmap = convertToTrueColor(image)
+        if (trueColorBitmap != null) {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "IMG_$timeStamp.pdf"
+            val pdfFile = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
+
+            try {
+                val document = Document()
+                val outputStream = FileOutputStream(pdfFile)
+                val writer = PdfWriter.getInstance(document, outputStream)
+                document.open()
+
+                val imageInstance = Image.getInstance(getByteFromBitmap(trueColorBitmap))
+
+                // Calculate new image dimensions
+                val pageSize = document.pageSize
+                val pageWidth = pageSize.width
+                val pageHeight = pageSize.height
+                val imageWidth = imageInstance.width
+                val imageHeight = imageInstance.height
+                val maxImageWidth = pageWidth * 0.8f // Adjust the percentage as needed
+                val maxImageHeight = pageHeight * 0.8f // Adjust the percentage as needed
+
+                // Calculate the scaling factor
+                val widthScale = maxImageWidth / imageWidth
+                val heightScale = maxImageHeight / imageHeight
+                val scaleFactor = if (widthScale < heightScale) widthScale else heightScale
+
+                // Scale the image
+                imageInstance.scalePercent((scaleFactor * 100).toFloat())
+
+                // Center the image on the page
+                val x = (pageWidth - imageInstance.scaledWidth) / 2
+                val y = (pageHeight - imageInstance.scaledHeight) / 2
+
+                // Add the image to the document
+                imageInstance.setAbsolutePosition(x, y)
+                document.add(imageInstance)
+
+                document.close()
+                printPdf(pdfFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast("Failed to create and print PDF")
+            }
+        }
+    }
+    private fun getByteFromBitmap(bitmap: Bitmap): ByteArray {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        return stream.toByteArray()
+    }
+    private fun printPdf(pdfFile: File) {
+        val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
+        val jobName = getString(R.string.app_name) + " Document"
+        val printAdapter = object : PrintDocumentAdapter() {
+            override fun onLayout(
+                oldAttributes: PrintAttributes?,
+                newAttributes: PrintAttributes?,
+                cancellationSignal: CancellationSignal?,
+                callback: LayoutResultCallback?,
+                extras: Bundle?
+            ) {
+                if (cancellationSignal?.isCanceled == true) {
+                    callback?.onLayoutCancelled()
+                    return
+                }
+
+                val info = PrintDocumentInfo.Builder("print_output.pdf")
+                    .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                    .build()
+
+                callback?.onLayoutFinished(info, newAttributes != oldAttributes)
+            }
+
+            override fun onWrite(
+                pages: Array<out PageRange>?,
+                destination: ParcelFileDescriptor?,
+                cancellationSignal: CancellationSignal?,
+                callback: WriteResultCallback?
+            ) {
+                val input = FileInputStream(pdfFile)
+
+                val output = FileOutputStream(destination?.fileDescriptor)
+                val buffer = ByteArray(8192)
+                var bytesRead: Int
+                while (input.read(buffer).also { bytesRead = it } >= 0) {
+                    output.write(buffer, 0, bytesRead)
+                }
+
+                input.close()
+                output.close()
+
+                callback?.onWriteFinished(arrayOf(PageRange.ALL_PAGES))
+            }
+        }
+
+        printManager.print(
+            jobName,
+            printAdapter,
+            PrintAttributes.Builder().build()
+        )
+    }
+
     private fun displayImage(bitmap: Bitmap) {
         photoBitmap = bitmap
         // Tampilkan foto yang sudah diambil ke ImageView atau lakukan operasi lain yang diperlukan
@@ -193,79 +303,7 @@ class DisplayImageActivity : AppCompatActivity() {
             showToast("Failed to save image")
         }
     }
-    private fun createPdfAndPrint(image: Bitmap) {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "IMG_$timeStamp.pdf"
-        val pdfFile = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
 
-        try {
-            val document = Document()
-            val pdfWriter = PdfWriter.getInstance(document, FileOutputStream(pdfFile))
-            document.open()
-
-            val imageInstance = Image.getInstance(BitmapConverter.getByteFromBitmap(image))
-            document.add(imageInstance)
-
-            document.close()
-
-            printPdf(pdfFile)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            showToast("Failed to create and print PDF")
-        }
-    }
-
-    private fun printPdf(pdfFile: File) {
-        val printManager = getSystemService(Context.PRINT_SERVICE) as PrintManager
-        val jobName = getString(R.string.app_name) + " Document"
-        val printAdapter = object : PrintDocumentAdapter() {
-            override fun onLayout(
-                oldAttributes: PrintAttributes?,
-                newAttributes: PrintAttributes?,
-                cancellationSignal: CancellationSignal?,
-                callback: LayoutResultCallback?,
-                extras: Bundle?
-            ) {
-                if (cancellationSignal?.isCanceled == true) {
-                    callback?.onLayoutCancelled()
-                    return
-                }
-
-                val info = PrintDocumentInfo.Builder("print_output.pdf")
-                    .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
-                    .build()
-
-                callback?.onLayoutFinished(info, newAttributes != oldAttributes)
-            }
-
-            override fun onWrite(
-                pages: Array<out PageRange>?,
-                destination: ParcelFileDescriptor?,
-                cancellationSignal: CancellationSignal?,
-                callback: WriteResultCallback?
-            ) {
-                val input = FileInputStream(pdfFile)
-
-                val output = FileOutputStream(destination?.fileDescriptor)
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                while (input.read(buffer).also { bytesRead = it } >= 0) {
-                    output.write(buffer, 0, bytesRead)
-                }
-
-                input.close()
-                output.close()
-
-                callback?.onWriteFinished(arrayOf(PageRange.ALL_PAGES))
-            }
-        }
-
-        printManager.print(
-            jobName,
-            printAdapter,
-            PrintAttributes.Builder().build()
-        )
-    }
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
@@ -273,24 +311,25 @@ class DisplayImageActivity : AppCompatActivity() {
         if (negativeImage == null) {
             return null
         }
-
         val width = negativeImage.width
         val height = negativeImage.height
         val trueColorImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val pixelColor = negativeImage.getPixel(x, y)
-                val red = 250 - android.graphics.Color.red(pixelColor) - 25
-                val green = 250 - android.graphics.Color.green(pixelColor) - 50
-                val blue = 250 - android.graphics.Color.blue(pixelColor) - 50
-
-//                // Tambahkan pencetakan nilai-nilai warna
-//                Log.d("Warna", "Red: $red, Green: $green, Blue: $blue")
-
-                trueColorImage.setPixel(x, y, android.graphics.Color.rgb(red, green, blue))
-            }
+        val matrix = ColorMatrix().apply {
+            set(floatArrayOf(
+                -1f, 0f, 0f, 0f, 225f,
+                0f, -1f, 0f, 0f, 200f,
+                0f, 0f, -1f, 0f, 200f,
+                0f, 0f, 0f, 1f, 0f
+            ))
         }
+        val filter = ColorMatrixColorFilter(matrix)
+        val paint = Paint().apply {
+            colorFilter = filter
+        }
+
+        val canvas = Canvas(trueColorImage)
+        canvas.drawBitmap(negativeImage, 0f, 0f, paint)
 
         return trueColorImage
     }
@@ -323,7 +362,7 @@ class DisplayImageActivity : AppCompatActivity() {
 
                 val trueColorBitmap = convertToTrueColor(compressedBitmap)
                 if (trueColorBitmap != null) {
-                    displayImage(trueColorBitmap) // Tetapkan gambar ke photoBitmap
+                    displayImage(trueColorBitmap) // Menampilkan gambar ke aplikasi
                 }
             }
         }
@@ -332,14 +371,6 @@ class DisplayImageActivity : AppCompatActivity() {
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, quality, stream)
         return BitmapFactory.decodeStream(ByteArrayInputStream(stream.toByteArray()))
-    }
-}
-
-object BitmapConverter {
-    fun getByteFromBitmap(bitmap: Bitmap): ByteArray {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        return stream.toByteArray()
     }
 }
 
