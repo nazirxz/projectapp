@@ -9,11 +9,14 @@
 
     <ImageView
         android:id="@+id/displayImageView"
-        android:layout_width="409dp"
-        android:layout_height="590dp"
-        android:layout_marginBottom="144dp"
+        android:layout_width="373dp"
+        android:layout_height="391dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="256dp"
+        android:src="@drawable/ic_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.578"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
@@ -47,7 +50,7 @@
         android:layout_below="@+id/displayImageView"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:layout_toEndOf="@+id/saveImageButton"
         android:background="@drawable/btn_secondary"
         android:fontFamily="@font/avenir_black"
