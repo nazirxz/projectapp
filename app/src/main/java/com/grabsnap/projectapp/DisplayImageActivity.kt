@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import com.grabsnap.projectapp.databinding.ActivityImageBinding
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.*
@@ -31,30 +32,26 @@ import com.yalantis.ucrop.UCrop
 import java.io.*
 
 class DisplayImageActivity : AppCompatActivity() {
-
+    private var shouldPrintImage = false
     private val REQUEST_CAMERA_PERMISSION = 1
     private val CAMERA_REQUEST_CODE = 2
+    private val GALLERY_REQUEST_CODE = 4
     private lateinit var binding: ActivityImageBinding
     private val WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 3
     private lateinit var photoBitmap: Bitmap
     private val UCROP_REQUEST_CODE = 123
     private var photoFile: File? = null
     private var currentPhotoPath: String? = null
+    private var isGalleryImageSelected = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Tambahkan kode untuk menampilkan opsi cetak gambar dari galeri atau displayImageView
         binding.printButton.setOnClickListener {
-            if (::photoBitmap.isInitialized) {
-                val trueColorBitmap = convertToTrueColor(photoBitmap)
-                if (trueColorBitmap != null) {
-                    createPdfAndPrint(trueColorBitmap)
-                }
-            } else {
-                showToast("No photo available to print")
-            }
+            showImagePickerDialog()
         }
 
         binding.displayImageView.setOnClickListener {
@@ -91,23 +88,47 @@ class DisplayImageActivity : AppCompatActivity() {
             finish()
         }
     }
+    private fun showImagePickerDialog() {
+        val options = arrayOf("Cetak Gambar", "Import dari Galeri")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Pilih Sumber Gambar")
+        builder.setItems(options) { dialog, which ->
+            when (which) {
+                0 -> printDisplayImage()
+                1 -> openGallery()
+            }
+        }
+        builder.show()
+    }
+
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, GALLERY_REQUEST_CODE)
+    }
+
 
     private fun createPdfAndPrint(image: Bitmap) {
-        val trueColorBitmap = convertToTrueColor(image)
-        if (trueColorBitmap != null) {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "IMG_$timeStamp.pdf"
-            val pdfFile = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
+        val bitmapToPrint = if (!isGalleryImageSelected) {
+            convertToTrueColor(image)
+        } else {
+            image // Menggunakan gambar langsung dari galeri tanpa mengonversi ke true color
+        }
 
-            try {
-                val document = Document()
-                val outputStream = FileOutputStream(pdfFile)
-                val writer = PdfWriter.getInstance(document, outputStream)
-                document.open()
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "IMG_$timeStamp.pdf"
+        val pdfFile = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
 
-                val imageInstance = Image.getInstance(getByteFromBitmap(trueColorBitmap))
+        try {
+            val document = Document()
+            val outputStream = FileOutputStream(pdfFile)
+            val writer = PdfWriter.getInstance(document, outputStream)
+            document.open()
 
-                // Calculate new image dimensions
+            val imageInstance = Image.getInstance(getByteFromBitmap(bitmapToPrint!!))
+
+
+            // Calculate new image dimensions
                 val pageSize = document.pageSize
                 val pageWidth = pageSize.width
                 val pageHeight = pageSize.height
@@ -132,12 +153,11 @@ class DisplayImageActivity : AppCompatActivity() {
                 imageInstance.setAbsolutePosition(x, y)
                 document.add(imageInstance)
 
-                document.close()
-                printPdf(pdfFile)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showToast("Failed to create and print PDF")
-            }
+            document.close()
+            printPdf(pdfFile)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Failed to create and print PDF")
         }
     }
     private fun getByteFromBitmap(bitmap: Bitmap): ByteArray {
@@ -196,6 +216,23 @@ class DisplayImageActivity : AppCompatActivity() {
             PrintAttributes.Builder().build()
         )
     }
+    private fun printGalleryImage(image: Bitmap) {
+        isGalleryImageSelected = true
+        createPdfAndPrint(image)
+    }
+    private fun printDisplayImage() {
+        if (::photoBitmap.isInitialized) {
+            val bitmapToPrint = photoBitmap?.let { convertToTrueColor(it) }
+            if (bitmapToPrint != null) {
+                isGalleryImageSelected = false
+                createPdfAndPrint(bitmapToPrint)
+            } else {
+                showToast("Gagal mengonversi gambar")
+            }
+        } else {
+            showToast("Tidak ada foto yang tersedia untuk dicetak")
+        }
+    }
 
     private fun displayImage(bitmap: Bitmap) {
         photoBitmap = bitmap
@@ -226,26 +263,25 @@ class DisplayImageActivity : AppCompatActivity() {
     }
 
     private fun openCamera() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Ensure that there's a camera activity to handle the intent
-            takePictureIntent.resolveActivity(packageManager)?.also {
-                // Create the File where the photo should go
-                photoFile = try {
-                    createImageFile()
-                } catch (ex: IOException) {
-                    // Error occurred while creating the File
-                    null
-                }
-                // Continue only if the File was successfully created
-                photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "com.grabsnap.projectapp.fileprovider",
-                        it
-                    )
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE)
-                }
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        // Ensure that there's a camera activity to handle the intent
+        takePictureIntent.resolveActivity(packageManager)?.also {
+            // Create the File where the photo should go
+            photoFile = try {
+                createImageFile()
+            } catch (ex: IOException) {
+                // Error occurred while creating the File
+                null
+            }
+            // Continue only if the File was successfully created
+            photoFile?.also {
+                val photoURI: Uri = FileProvider.getUriForFile(
+                    this,
+                    "com.grabsnap.projectapp.fileprovider",
+                    it
+                )
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE)
             }
         }
     }
@@ -345,24 +381,39 @@ class DisplayImageActivity : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val imageFile = photoFile
-            if (imageFile != null) {
-                val imageUri = Uri.fromFile(imageFile)
-                openUCropActivity(imageUri)
-            }
-        } else if (requestCode == UCROP_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val resultUri = UCrop.getOutput(data!!)
-            if (resultUri != null) {
-                // Dekode hasil UCrop
-                val imageBitmap = BitmapFactory.decodeFile(resultUri.path)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                GALLERY_REQUEST_CODE -> {
+                    if (data != null) {
+                        val selectedImage: Uri? = data.data
+                        if (selectedImage != null) {
+                            val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, selectedImage)
+                            printGalleryImage(bitmap) // Cetak gambar dari galeri tanpa perubahan warna
+                        }
+                    }
+                }
+                CAMERA_REQUEST_CODE -> {
+                    val imageFile = photoFile
+                    if (imageFile != null) {
+                        val imageUri = Uri.fromFile(imageFile)
+                        openUCropActivity(imageUri)
+                    }
+                }
+                UCROP_REQUEST_CODE -> {
+                    val resultUri = UCrop.getOutput(data!!)
+                    if (resultUri != null) {
+                        // Dekode hasil UCrop
+                        val imageBitmap = BitmapFactory.decodeFile(resultUri.path)
 
-                // Kompresi gambar sebelum konversi ke warna sejati
-                val compressedBitmap = compressBitmap(imageBitmap, 80) // Atur kualitas kompresi di sini
+                        // Kompresi gambar sebelum konversi ke warna sejati
+                        val compressedBitmap =
+                            compressBitmap(imageBitmap, 80) // Atur kualitas kompresi di sini
 
-                val trueColorBitmap = convertToTrueColor(compressedBitmap)
-                if (trueColorBitmap != null) {
-                    displayImage(trueColorBitmap) // Menampilkan gambar ke aplikasi
+                        val trueColorBitmap = convertToTrueColor(compressedBitmap)
+                        if (trueColorBitmap != null) {
+                            displayImage(trueColorBitmap) // Menampilkan gambar ke aplikasi
+                        }
+                    }
                 }
             }
         }

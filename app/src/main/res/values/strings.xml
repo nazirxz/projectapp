@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">ProjectApp</string>
+    <string name="app_name">GrabSnap</string>
+    <string name="about">Aplikasi ini memungkinkan pengguna untuk mengubah gambar dari format foto negatif menjadi warna aslinya. Berikut langkah-langkah penggunaannya:\n\n
+        1. Buka Aplikasi: Mulailah dengan membuka aplikasi yang telah diunduh dan diinstal di perangkat Anda.\n\n
+        2. Klik Tombol "Say Cheese": Setelah aplikasi terbuka, cari tombol "Say Cheese" untuk mengambil gambar dengan kamera perangkat Anda.\n\n
+        3. Pilih Icon Gambar: Setelah mengambil gambar dalam bentuk negatif, Anda akan melihat icon gambar. Klik icon tersebut untuk melanjutkan proses.\n\n
+        4. Resize Gambar: Setelah memilih gambar negatif, Anda dapat melakukan penyesuaian ukuran (resize) sesuai dengan keinginan Anda. Ini memungkinkan Anda untuk menyesuaikan ukuran gambar agar sesuai dengan preferensi Anda.\n\n
+        5. Konversi Menjadi Gambar True Color: Setelah menyelesaikan penyesuaian ukuran, aplikasi akan secara otomatis melakukan konversi gambar negatif tersebut menjadi gambar dengan warna asli (true color).\n\n
+        6. Pencetakan atau Import ke Galeri: Setelah gambar telah dikonversi, Anda memiliki opsi untuk mencetaknya langsung atau menyimpannya ke galeri ponsel untuk digunakan atau dibagikan lebih lanjut.\n\n
+        Dengan langkah-langkah tersebut, Anda dapat mengubah gambar dari format negatif menjadi gambar dengan warna asli menggunakan aplikasi ini.</string>
 </resources>

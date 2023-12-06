@@ -71,17 +71,24 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:layout_width="356dp"
-        android:layout_height="360dp"
+        android:layout_width="366dp"
+        android:layout_height="356dp"
         android:fontFamily="@font/avenir_roman"
-        android:text="Cara Penggunaan \nbla\nbla"
-        android:textSize="20dp"
+        android:text="Aplikasi ini memungkinkan pengguna untuk mengubah gambar dari format foto negatif menjadi warna aslinya. Berikut langkah-langkah penggunaannya:\n\n
+1. Buka Aplikasi: Mulailah dengan membuka aplikasi yang telah diunduh dan diinstal di perangkat Anda.\n\n
+2. Klik Tombol &quot;Say Cheese&quot;: Setelah aplikasi terbuka, cari tombol &quot;Say Cheese&quot; untuk mengambil gambar dengan kamera perangkat Anda.\n\n
+3. Pilih Icon Gambar: Setelah mengambil gambar dalam bentuk negatif, Anda akan melihat icon gambar. Klik icon tersebut untuk melanjutkan proses.\n\n
+4. Resize Gambar: Setelah memilih gambar negatif, Anda dapat melakukan penyesuaian ukuran (resize) sesuai dengan keinginan Anda. Ini memungkinkan Anda untuk menyesuaikan ukuran gambar agar sesuai dengan preferensi Anda.\n\n
+5. Konversi Menjadi Gambar True Color: Setelah menyelesaikan penyesuaian ukuran, aplikasi akan secara otomatis melakukan konversi gambar negatif tersebut menjadi gambar dengan warna asli (true color).\n\n
+6. Pencetakan atau Import ke Galeri: Setelah gambar telah dikonversi, Anda memiliki opsi untuk mencetaknya langsung atau mengambil gambar dari galeri ponsel untuk digunakan atau dibagikan lebih lanjut.\n\nDengan langkah-langkah tersebut, Anda dapat mengubah gambar dari format negatif menjadi gambar dengan warna asli menggunakan aplikasi ini."
+        android:textSize="11dp"
         app:layout_constraintBottom_toBottomOf="@+id/view2"
         app:layout_constraintEnd_toEndOf="@+id/view2"
-        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="@+id/view2"
         app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.02" />
+        app:layout_constraintVertical_bias="0.0" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
