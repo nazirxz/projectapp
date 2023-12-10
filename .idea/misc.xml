@@ -10,9 +10,11 @@
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/drawable/ic_chevron_left.xml" value="0.187" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/drawable/ic_image.xml" value="0.2755" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/drawable/ic_printer.xml" value="0.195" />
+        <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/drawable/ic_user.xml" value="0.2405" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_about.xml" value="0.2" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_camera.xml" value="0.18385416666666668" />
-        <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_image.xml" value="0.33" />
+        <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_edit.xml" value="0.25" />
+        <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_image.xml" value="0.5" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/MiniProjek/ProjectAPp/app/src/main/res/xml/provider_paths.xml" value="0.1" />
       </map>

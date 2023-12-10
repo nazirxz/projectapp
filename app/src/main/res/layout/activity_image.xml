@@ -45,7 +45,7 @@
         android:contentDescription="TODO" />
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/backButton"
+        android:id="@+id/editButton"
         android:layout_width="150dp"
         android:layout_height="50dp"
         android:layout_below="@+id/displayImageView"
@@ -55,7 +55,7 @@
         android:layout_toEndOf="@+id/saveImageButton"
         android:background="@drawable/btn_secondary"
         android:fontFamily="@font/avenir_black"
-        android:text="Kembali"
+        android:text="Edit Photo"
         android:textColor="@color/primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.507"
@@ -79,5 +79,42 @@
         app:layout_constraintTop_toBottomOf="@+id/displayImageView"
         app:layout_constraintVertical_bias="0.196" />
 
+    <!-- SeekBars untuk mengatur kontras, saturasi, dan kecerahan -->
 
+    <SeekBar
+        android:id="@+id/contrastSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:max="200"
+        android:progress="100"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/saveImageButton" />
+
+    <SeekBar
+        android:id="@+id/saturationSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/contrastSeekBar"
+        android:max="200"
+        android:progress="100"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/brightnessSeekBar"
+        app:layout_constraintVertical_bias="0.216" />
+
+    <SeekBar
+        android:id="@+id/brightnessSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saturationSeekBar"
+        android:layout_marginTop="16dp"
+        android:max="200"
+        android:progress="100"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contrastSeekBar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

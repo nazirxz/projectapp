@@ -20,8 +20,10 @@ import android.os.ParcelFileDescriptor
 import android.print.*
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModelProvider
 import java.text.SimpleDateFormat
 import java.util.*
 import com.itextpdf.text.Document
@@ -32,7 +34,6 @@ import com.yalantis.ucrop.UCrop
 import java.io.*
 
 class DisplayImageActivity : AppCompatActivity() {
-    private var shouldPrintImage = false
     private val REQUEST_CAMERA_PERMISSION = 1
     private val CAMERA_REQUEST_CODE = 2
     private val GALLERY_REQUEST_CODE = 4
@@ -43,6 +44,7 @@ class DisplayImageActivity : AppCompatActivity() {
     private var photoFile: File? = null
     private var currentPhotoPath: String? = null
     private var isGalleryImageSelected = false
+    private lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +55,7 @@ class DisplayImageActivity : AppCompatActivity() {
         binding.printButton.setOnClickListener {
             showImagePickerDialog()
         }
+        sharedViewModel = ViewModelProvider(this).get(SharedViewModel::class.java)
 
         binding.displayImageView.setOnClickListener {
             if (hasCameraPermission()) {
@@ -60,6 +63,7 @@ class DisplayImageActivity : AppCompatActivity() {
             } else {
                 requestCameraPermission()
             }
+
         }
         binding.backIcon.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
@@ -82,11 +86,66 @@ class DisplayImageActivity : AppCompatActivity() {
             }
         }
 
-        binding.backButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+        binding.editButton.setOnClickListener {
+            // Mengirim bitmap gambar ke EditActivity
+            val intent = Intent(this, EditActivity::class.java)
+            intent.putExtra("photoBitmap", photoBitmap)
             startActivity(intent)
-            finish()
         }
+        // Di dalam onCreate atau di mana Anda menginisialisasi komponen
+        binding.contrastSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                applyImageEffects()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        binding.saturationSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                applyImageEffects()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        binding.brightnessSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                applyImageEffects()
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+    }
+    private fun applyImageEffects() {
+        val contrast = binding.contrastSeekBar.progress.toFloat() / 100
+        val saturation = binding.saturationSeekBar.progress.toFloat() / 100
+        val brightness = binding.brightnessSeekBar.progress.toFloat() / 100
+
+        val matrix = ColorMatrix().apply {
+            setSaturation(saturation)
+            set(floatArrayOf(
+                contrast, 0f, 0f, 0f, brightness * 255,
+                0f, contrast, 0f, 0f, brightness * 255,
+                0f, 0f, contrast, 0f, brightness * 255,
+                0f, 0f, 0f, 1f, 0f
+            ))
+        }
+
+        val bmp = photoBitmap.copy(photoBitmap.config, true)
+        val cmFilter = ColorMatrixColorFilter(matrix)
+        val paint = Paint().apply { colorFilter = cmFilter }
+
+        val canvas = Canvas(bmp)
+        canvas.drawBitmap(bmp, 0f, 0f, paint)
+
+        binding.displayImageView.setImageBitmap(bmp)
     }
     private fun showImagePickerDialog() {
         val options = arrayOf("Cetak Gambar", "Import dari Galeri")
@@ -379,6 +438,7 @@ class DisplayImageActivity : AppCompatActivity() {
             storageDir
         )
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
