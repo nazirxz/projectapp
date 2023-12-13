@@ -14,11 +14,16 @@ import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.print.*
 import android.provider.MediaStore
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RenderScript
+import android.renderscript.ScriptIntrinsicConvolve3x3
 import android.util.Log
 import android.widget.SeekBar
 import android.widget.Toast
@@ -31,6 +36,10 @@ import com.itextpdf.text.Image
 import com.itextpdf.text.PageSize
 import com.itextpdf.text.pdf.PdfWriter
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.*
 
 class DisplayImageActivity : AppCompatActivity() {
@@ -44,7 +53,10 @@ class DisplayImageActivity : AppCompatActivity() {
     private var photoFile: File? = null
     private var currentPhotoPath: String? = null
     private var isGalleryImageSelected = false
-    private lateinit var sharedViewModel: SharedViewModel
+    private var contrastValue: Float = 1f
+    private var saturationValue: Float = 1f
+    private var brightnessValue: Float = 0f
+    private var sharpnessValue: Float = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,8 +67,6 @@ class DisplayImageActivity : AppCompatActivity() {
         binding.printButton.setOnClickListener {
             showImagePickerDialog()
         }
-        sharedViewModel = ViewModelProvider(this).get(SharedViewModel::class.java)
-
         binding.displayImageView.setOnClickListener {
             if (hasCameraPermission()) {
                 openCamera()
@@ -86,16 +96,14 @@ class DisplayImageActivity : AppCompatActivity() {
             }
         }
 
-        binding.editButton.setOnClickListener {
-            // Mengirim bitmap gambar ke EditActivity
-            val intent = Intent(this, EditActivity::class.java)
-            intent.putExtra("photoBitmap", photoBitmap)
+        binding.backButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
-        // Di dalam onCreate atau di mana Anda menginisialisasi komponen
         binding.contrastSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                applyImageEffects()
+                applyContrast(progress.toFloat() / 100)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -105,7 +113,7 @@ class DisplayImageActivity : AppCompatActivity() {
 
         binding.saturationSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                applyImageEffects()
+                applySaturation(progress.toFloat() / 100)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -115,37 +123,106 @@ class DisplayImageActivity : AppCompatActivity() {
 
         binding.brightnessSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                applyImageEffects()
+                applyBrightness(progress.toFloat())
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-    }
-    private fun applyImageEffects() {
-        val contrast = binding.contrastSeekBar.progress.toFloat() / 100
-        val saturation = binding.saturationSeekBar.progress.toFloat() / 100
-        val brightness = binding.brightnessSeekBar.progress.toFloat() / 100
 
+        binding.sharpnessSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                applySharpness(progress.toFloat())
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+    }
+    private fun doSharpen(original: Bitmap, multiplier: Float): Bitmap {
+        val sharp = floatArrayOf(0f, -multiplier, 0f, -multiplier, 5f * multiplier, -multiplier, 0f, -multiplier, 0f)
+        val bitmap = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+        val rs = RenderScript.create(this)
+
+        val allocIn = Allocation.createFromBitmap(rs, original)
+        val allocOut = Allocation.createFromBitmap(rs, bitmap)
+
+        val convolution = ScriptIntrinsicConvolve3x3.create(rs, Element.U8_4(rs))
+        convolution.setInput(allocIn)
+        convolution.setCoefficients(sharp)
+        convolution.forEach(allocOut)
+
+        allocOut.copyTo(bitmap)
+        rs.destroy()
+
+        return bitmap
+    }
+    private fun applySharpness(sharpness: Float) {
+        val sharpnessValue = sharpness / 100f
+        if (::photoBitmap.isInitialized) {
+            // Gunakan thread terpisah (misalnya, dengan menggunakan coroutine)
+            CoroutineScope(Dispatchers.Default).launch {
+                val sharpenedBitmap = doSharpen(photoBitmap, sharpnessValue)
+
+                // Kembali ke thread utama untuk memperbarui UI
+                withContext(Dispatchers.Main) {
+                    binding.displayImageView.setImageBitmap(sharpenedBitmap)
+                }
+            }
+        } else {
+            showToast("Photo has not been initialized")
+        }
+    }
+    private fun applySaturation(saturation: Float) {
         val matrix = ColorMatrix().apply {
             setSaturation(saturation)
+        }
+
+        applyImageEffectWithMatrixAsync(matrix)
+    }
+
+    private fun applyBrightness(brightness: Float) {
+        val matrix = ColorMatrix().apply {
             set(floatArrayOf(
-                contrast, 0f, 0f, 0f, brightness * 255,
-                0f, contrast, 0f, 0f, brightness * 255,
-                0f, 0f, contrast, 0f, brightness * 255,
+                1f, 0f, 0f, 0f, brightness,
+                0f, 1f, 0f, 0f, brightness,
+                0f, 0f, 1f, 0f, brightness,
                 0f, 0f, 0f, 1f, 0f
             ))
         }
 
+        applyImageEffectWithMatrixAsync(matrix)
+    }
+
+    private fun applyContrast(contrast: Float) {
+        val matrix = ColorMatrix().apply {
+            setScale(contrast, contrast, contrast, 1f) // Mengatur kontras
+        }
+
+        applyImageEffectWithMatrixAsync(matrix)
+    }
+
+    private fun applyImageEffectWithMatrixAsync(matrix: ColorMatrix) {
         val bmp = photoBitmap.copy(photoBitmap.config, true)
         val cmFilter = ColorMatrixColorFilter(matrix)
         val paint = Paint().apply { colorFilter = cmFilter }
 
-        val canvas = Canvas(bmp)
-        canvas.drawBitmap(bmp, 0f, 0f, paint)
+        // Gunakan coroutines untuk melakukan operasi pemrosesan gambar di thread terpisah
+        CoroutineScope(Dispatchers.Default).launch {
+            val processedBitmap = withContext(Dispatchers.Default) {
+                val canvas = Canvas(bmp)
+                canvas.drawBitmap(bmp, 0f, 0f, paint)
+                bmp
+            }
 
-        binding.displayImageView.setImageBitmap(bmp)
+            // Kembali ke thread utama untuk memperbarui UI
+            withContext(Dispatchers.Main) {
+                binding.displayImageView.setImageBitmap(processedBitmap)
+            }
+        }
     }
     private fun showImagePickerDialog() {
         val options = arrayOf("Cetak Gambar", "Import dari Galeri")
@@ -153,7 +230,7 @@ class DisplayImageActivity : AppCompatActivity() {
         builder.setTitle("Pilih Sumber Gambar")
         builder.setItems(options) { dialog, which ->
             when (which) {
-                0 -> printDisplayImage()
+                0 ->  printPdfFromImageView()
                 1 -> openGallery()
             }
         }
@@ -167,13 +244,7 @@ class DisplayImageActivity : AppCompatActivity() {
     }
 
 
-    private fun createPdfAndPrint(image: Bitmap) {
-        val bitmapToPrint = if (!isGalleryImageSelected) {
-            convertToTrueColor(image)
-        } else {
-            image // Menggunakan gambar langsung dari galeri tanpa mengonversi ke true color
-        }
-
+    private fun createPdfAndPrint(image: Bitmap?) {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val fileName = "IMG_$timeStamp.pdf"
         val pdfFile = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
@@ -184,10 +255,10 @@ class DisplayImageActivity : AppCompatActivity() {
             val writer = PdfWriter.getInstance(document, outputStream)
             document.open()
 
-            val imageInstance = Image.getInstance(getByteFromBitmap(bitmapToPrint!!))
+            if (image != null) {
+                val imageInstance = Image.getInstance(getByteFromBitmap(image))
 
-
-            // Calculate new image dimensions
+                // Calculate new image dimensions
                 val pageSize = document.pageSize
                 val pageWidth = pageSize.width
                 val pageHeight = pageSize.height
@@ -209,8 +280,15 @@ class DisplayImageActivity : AppCompatActivity() {
                 val y = (pageHeight - imageInstance.scaledHeight) / 2
 
                 // Add the image to the document
-                imageInstance.setAbsolutePosition(x, y)
-                document.add(imageInstance)
+                if (imageInstance.width > 0 && imageInstance.height > 0) {
+                    imageInstance.setAbsolutePosition(x, y)
+                    document.add(imageInstance)
+                } else {
+                    showToast("Failed to add image to the document")
+                }
+            } else {
+                showToast("Image not found")
+            }
 
             document.close()
             printPdf(pdfFile)
@@ -274,25 +352,88 @@ class DisplayImageActivity : AppCompatActivity() {
             printAdapter,
             PrintAttributes.Builder().build()
         )
+
     }
     private fun printGalleryImage(image: Bitmap) {
         isGalleryImageSelected = true
         createPdfAndPrint(image)
     }
+    private fun printPdfFromImageView() {
+        val drawable = binding.displayImageView.drawable
+        if (drawable is BitmapDrawable) {
+            val image = drawable.bitmap
+            createPdfAndPrint(image)
+        } else {
+            showToast("No image found in ImageView")
+        }
+    }
+    private fun applyAllEffects(bitmap: Bitmap): Bitmap {
+        var processedBitmap = bitmap.copy(bitmap.config, true)
+
+        // Terapkan efek kontras
+        val contrastMatrix = ColorMatrix().apply {
+            setScale(contrastValue, contrastValue, contrastValue, 1f)
+        }
+        val contrastFilter = ColorMatrixColorFilter(contrastMatrix)
+        val contrastPaint = Paint().apply {
+            colorFilter = contrastFilter
+        }
+        val contrastCanvas = Canvas(processedBitmap)
+        contrastCanvas.drawBitmap(processedBitmap, 0f, 0f, contrastPaint)
+
+        // Terapkan efek saturasi
+        val saturationMatrix = ColorMatrix().apply {
+            setSaturation(saturationValue)
+        }
+        val saturationFilter = ColorMatrixColorFilter(saturationMatrix)
+        val saturationPaint = Paint().apply {
+            colorFilter = saturationFilter
+        }
+        val saturationBitmap = processedBitmap.copy(processedBitmap.config, true)
+        val saturationCanvas = Canvas(saturationBitmap)
+        saturationCanvas.drawBitmap(processedBitmap, 0f, 0f, saturationPaint)
+
+        // Terapkan efek kecerahan
+        val brightnessMatrix = ColorMatrix().apply {
+            set(floatArrayOf(
+                1f, 0f, 0f, 0f, brightnessValue,
+                0f, 1f, 0f, 0f, brightnessValue,
+                0f, 0f, 1f, 0f, brightnessValue,
+                0f, 0f, 0f, 1f, 0f
+            ))
+        }
+        val brightnessFilter = ColorMatrixColorFilter(brightnessMatrix)
+        val brightnessPaint = Paint().apply {
+            colorFilter = brightnessFilter
+        }
+        val brightnessBitmap = saturationBitmap.copy(saturationBitmap.config, true)
+        val brightnessCanvas = Canvas(brightnessBitmap)
+        brightnessCanvas.drawBitmap(saturationBitmap, 0f, 0f, brightnessPaint)
+
+        // Terapkan efek ketajaman
+        processedBitmap = doSharpen(brightnessBitmap, sharpnessValue)
+
+        return processedBitmap
+    }
+
     private fun printDisplayImage() {
         if (::photoBitmap.isInitialized) {
-            val bitmapToPrint = photoBitmap?.let { convertToTrueColor(it) }
-            if (bitmapToPrint != null) {
-                isGalleryImageSelected = false
-                createPdfAndPrint(bitmapToPrint)
+            val trueColorBitmap = convertToTrueColor(photoBitmap)
+            if (trueColorBitmap != null) {
+                val bitmapWithEffects = applyAllEffects(trueColorBitmap)
+                if (bitmapWithEffects != null) {
+                    isGalleryImageSelected = false
+                    createPdfAndPrint(bitmapWithEffects)
+                } else {
+                    showToast("Gagal menerapkan efek pada gambar")
+                }
             } else {
-                showToast("Gagal mengonversi gambar")
+                showToast("Gagal mengonversi gambar ke True Color")
             }
         } else {
             showToast("Tidak ada foto yang tersedia untuk dicetak")
         }
     }
-
     private fun displayImage(bitmap: Bitmap) {
         photoBitmap = bitmap
         // Tampilkan foto yang sudah diambil ke ImageView atau lakukan operasi lain yang diperlukan
@@ -371,31 +512,40 @@ class DisplayImageActivity : AppCompatActivity() {
     }
 
     private fun saveImageToExternalStorage(image: Bitmap) {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "IMG_$timeStamp.png"
+        val drawable = binding.displayImageView.drawable
+        if (drawable is BitmapDrawable) {
+            val image = drawable.bitmap
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "IMG_processed_$timeStamp.png"
 
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-        }
-
-        val resolver = contentResolver
-        var imageUri: Uri? = null
-        try {
-            val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val uri = resolver.insert(contentUri, contentValues)
-            if (uri != null) {
-                val imageOutputStream = resolver.openOutputStream(uri)
-                image.compress(Bitmap.CompressFormat.PNG, 100, imageOutputStream)
-                imageOutputStream?.close()
-                showToast("Image saved successfully in external storage as $fileName")
-            } else {
-                showToast("Failed to save image")
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showToast("Failed to save image")
+
+            val resolver = contentResolver
+            var imageUri: Uri? = null
+            try {
+                val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                val uri = resolver.insert(contentUri, contentValues)
+                if (uri != null) {
+                    val imageOutputStream = resolver.openOutputStream(uri)
+
+                    // Compress dan simpan gambar yang sedang ditampilkan
+                    image.compress(Bitmap.CompressFormat.PNG, 100, imageOutputStream)
+
+                    imageOutputStream?.close()
+                    showToast("Displayed image saved successfully as $fileName")
+                } else {
+                    showToast("Failed to save displayed image")
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                showToast("Failed to save displayed image")
+            }
+        } else {
+            showToast("No image displayed")
         }
     }
 

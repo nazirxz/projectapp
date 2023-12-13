@@ -12,7 +12,7 @@
         android:layout_width="373dp"
         android:layout_height="391dp"
         android:layout_gravity="center"
-        android:layout_marginBottom="256dp"
+        android:layout_marginBottom="344dp"
         android:src="@drawable/ic_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,23 +44,7 @@
         app:layout_constraintVertical_bias="0.727"
         android:contentDescription="TODO" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/editButton"
-        android:layout_width="150dp"
-        android:layout_height="50dp"
-        android:layout_below="@+id/displayImageView"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="40dp"
-        android:layout_toEndOf="@+id/saveImageButton"
-        android:background="@drawable/btn_secondary"
-        android:fontFamily="@font/avenir_black"
-        android:text="Edit Photo"
-        android:textColor="@color/primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toEndOf="@+id/saveImageButton"
-        app:layout_constraintTop_toBottomOf="@+id/displayImageView" />
+    <!-- SeekBars untuk mengatur kontras, saturasi, dan kecerahan -->
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/saveImageButton"
@@ -77,9 +61,75 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/displayImageView"
-        app:layout_constraintVertical_bias="0.196" />
+        app:layout_constraintVertical_bias="0.095" />
 
-    <!-- SeekBars untuk mengatur kontras, saturasi, dan kecerahan -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/backButton"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/displayImageView"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="28dp"
+        android:layout_toEndOf="@+id/saveImageButton"
+        android:background="@drawable/btn_secondary"
+        android:fontFamily="@font/avenir_black"
+        android:text="Kembali"
+        android:textColor="@color/primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintStart_toEndOf="@+id/saveImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/displayImageView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contrast"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/contrastSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/saveImageButton"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Brightness"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/brightnessSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contrastSeekBar"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Saturation"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/saturationSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/brightnessSeekBar"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sharpness"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/sharpnessSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.043"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/saturationSeekBar" />
 
     <SeekBar
         android:id="@+id/contrastSeekBar"
@@ -96,14 +146,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/contrastSeekBar"
+        android:layout_marginBottom="136dp"
         android:max="200"
         android:progress="100"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/brightnessSeekBar"
-        app:layout_constraintVertical_bias="0.216" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <SeekBar
         android:id="@+id/brightnessSeekBar"
@@ -117,4 +166,17 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/contrastSeekBar" />
+
+    <SeekBar
+        android:id="@+id/sharpnessSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/saturationSeekBar"
+        android:layout_marginBottom="100dp"
+        android:max="200"
+        android:progress="100"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

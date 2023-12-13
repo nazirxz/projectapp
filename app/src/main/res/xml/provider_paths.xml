@@ -2,5 +2,5 @@
 <paths>
     <external-files-path
         name="my_images"
-        path="Pictures/" />
+        path="." />
 </paths>
